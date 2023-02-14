@@ -10,7 +10,7 @@ const WailsApplicationPackage = "github.com/wailsapp/wails/v3/pkg/application"
 type ImportContext struct {
 	Import   string
 	ImportAs *string
-	File     *ast.File
+	File     *AstFile
 }
 
 func NewImportContext(file *ast.File, target string) *ImportContext {
@@ -29,10 +29,11 @@ func NewImportContext(file *ast.File, target string) *ImportContext {
 				importAs = &importObj.Name.Name
 			}
 
+			f := AstFile(*file)
 			return &ImportContext{
 				Import:   value,
 				ImportAs: importAs,
-				File:     file,
+				File:     &f,
 			}
 		}
 	}

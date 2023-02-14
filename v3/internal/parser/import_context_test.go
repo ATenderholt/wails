@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-const src = `
+const importContextSrc = `
 package main
 
 import (
@@ -65,7 +65,7 @@ func TestNewImportContext(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fset := token.NewFileSet()
-			file, err := lang.ParseFile(fset, "test.go", src, lang.AllErrors)
+			file, err := lang.ParseFile(fset, "test.go", importContextSrc, lang.AllErrors)
 			require.NoError(t, err, "unable to parse test src")
 
 			importContext := parser.NewImportContext(file, tt.target)
@@ -74,7 +74,7 @@ func TestNewImportContext(t *testing.T) {
 			} else {
 				require.Equal(t, tt.want.Import, importContext.Import)
 				require.Equal(t, tt.want.ImportAs, importContext.ImportAs)
-				require.Equal(t, file, importContext.File)
+				require.Equal(t, parser.AstFile(*file), *importContext.File)
 			}
 		})
 	}
