@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-// AstCallExpr extends ast.CallExpr with functions to make it easier to use
+// AstCallExpr is type definition of ast.CallExpr with functions to make it easier to use
 type AstCallExpr ast.CallExpr
 
 // String returns the string representation of an ast.CallExpr function name
@@ -38,24 +38,3 @@ func (expr *AstCallExpr) String() string {
 	builder.WriteString(selectorExpr.Sel.Name)
 	return builder.String()
 }
-
-type AstFile ast.File
-
-//func (file AstFile) HasNewApplication() bool {
-//	for _, decl := range file.Decls {
-//		funcDecl, ok := decl.(*ast.FuncDecl)
-//		if !ok {
-//			continue
-//		}
-//
-//		for _, stmt := range funcDecl.Body.List {
-//			assignStmt, ok := stmt.(*ast.AssignStmt)
-//			if !ok {
-//				continue
-//			}
-//
-//			for
-//		}
-//	}
-//	return false
-//}
