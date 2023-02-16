@@ -30,30 +30,20 @@ func (file AstFile) ImportMap() map[string]*string {
 	return imports
 }
 
-func (file AstFile) GetFunctionCalls() []*AstCallExpr {
-	doneChan := make(chan bool)
-	funcChan := make(chan *ast.CallExpr)
-
-	go func() {
-		unwrapped := ast.File(file)
-		ast.Inspect(&unwrapped, func(n ast.Node) bool {
-			callExpr, ok := n.(*ast.CallExpr)
-			if ok {
-				funcChan <- callExpr
-			}
-			return true
-		})
-		doneChan <- true
-	}()
-
-	var funcs []*AstCallExpr
-	for {
-		select {
-		case callExpr := <-funcChan:
+func (file AstFile) GetFunctionCalls() map[string][]*AstCallExpr {
+	callExprs := make(map[string][]*AstCallExpr)
+	unwrapped := ast.File(file)
+	ast.Inspect(&unwrapped, func(n ast.Node) bool {
+		callExpr, ok := n.(*ast.CallExpr)
+		if ok {
 			wrapped := AstCallExpr(*callExpr)
-			funcs = append(funcs, &wrapped)
-		case <-doneChan:
-			return funcs
+			name := wrapped.String()
+			list := callExprs[name]
+			list = append(list, &wrapped)
+			callExprs[name] = list
 		}
-	}
+		return true
+	})
+
+	return callExprs
 }

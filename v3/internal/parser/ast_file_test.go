@@ -43,13 +43,9 @@ func TestAstFile(t *testing.T) {
 	assert.Equal(t, "_", *imports["embed"])
 
 	funcs := file.GetFunctionCalls()
-	funcNames := make([]string, len(funcs))
-	for i, f := range funcs {
-		funcNames[i] = f.String()
-	}
 
-	assert.Contains(t, funcNames, "application.New")
-	assert.Contains(t, funcNames, "app.NewWebviewWindow")
-	assert.Contains(t, funcNames, "app.Run")
-	assert.Contains(t, funcNames, "panic")
+	assert.Contains(t, funcs, "application.New")
+	assert.Contains(t, funcs, "app.NewWebviewWindow")
+	assert.Contains(t, funcs, "app.Run")
+	assert.Contains(t, funcs, "panic")
 }
