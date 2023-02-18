@@ -6,6 +6,7 @@ import (
 )
 
 const WailsApplicationPackage = "github.com/wailsapp/wails/v3/pkg/application"
+const WailsApplicationImport = "application"
 
 type ImportContext struct {
 	Import   string
