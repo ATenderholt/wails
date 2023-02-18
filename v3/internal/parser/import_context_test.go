@@ -74,7 +74,7 @@ func TestNewImportContext(t *testing.T) {
 			} else {
 				require.Equal(t, tt.want.Import, importContext.Import)
 				require.Equal(t, tt.want.ImportAs, importContext.ImportAs)
-				require.Equal(t, parser.AstFile(*file), *importContext.File)
+				require.Equal(t, *parser.NewAstFile(file), *importContext.File)
 			}
 		})
 	}

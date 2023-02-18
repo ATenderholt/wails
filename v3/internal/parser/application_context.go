@@ -28,17 +28,16 @@ func NewApplicationContext(root string) *ApplicationContext {
 
 	var contexts []fileContext
 	for name, pkg := range pkgs {
-		for _, file := range pkg.Files {
-			temp := AstFile(*file)
+		for _, f := range pkg.Files {
+			file := NewAstFile(f)
 			context := fileContext{
 				pkgName:  name,
 				fileName: file.Name.Name,
-				file:     &temp,
+				file:     file,
 			}
 			contexts = append(contexts, context)
 
-			imports := temp.ImportMap()
-			wailsImport, ok := imports[WailsApplicationPackage]
+			wailsImport, ok := file.ImportMap[WailsApplicationPackage]
 			if !ok {
 				continue
 			}
@@ -56,7 +55,7 @@ func NewApplicationContext(root string) *ApplicationContext {
 
 			fmt.Printf("Looking for %s\n", target)
 			var options *AstCompositeLit
-			ast.Inspect(file, func(node ast.Node) bool {
+			ast.Inspect(f, func(node ast.Node) bool {
 				compositeLit, ok := node.(*ast.CompositeLit)
 				if !ok {
 					return true

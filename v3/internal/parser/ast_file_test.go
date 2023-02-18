@@ -37,15 +37,12 @@ func TestAstFile(t *testing.T) {
 	f, err := lang.ParseFile(fset, "test.go", astFileTestSrc, lang.AllErrors)
 	require.NoError(t, err, "unable to parse test src")
 
-	file := parser.AstFile(*f)
-	imports := file.ImportMap()
-	assert.Nil(t, imports[parser.WailsApplicationPackage])
-	assert.Equal(t, "_", *imports["embed"])
+	file := parser.NewAstFile(f)
+	assert.Nil(t, file.ImportMap[parser.WailsApplicationPackage])
+	assert.Equal(t, "_", *file.ImportMap["embed"])
 
-	funcs := file.GetFunctionCalls()
-
-	assert.Contains(t, funcs, "application.New")
-	assert.Contains(t, funcs, "app.NewWebviewWindow")
-	assert.Contains(t, funcs, "app.Run")
-	assert.Contains(t, funcs, "panic")
+	assert.Contains(t, file.FunctionCalls, "application.New")
+	assert.Contains(t, file.FunctionCalls, "app.NewWebviewWindow")
+	assert.Contains(t, file.FunctionCalls, "app.Run")
+	assert.Contains(t, file.FunctionCalls, "panic")
 }

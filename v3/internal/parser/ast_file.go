@@ -6,12 +6,27 @@ import (
 )
 
 // AstFile is type definition of ast.File with functions to make it easier to use
-type AstFile ast.File
+type AstFile struct {
+	*ast.File
+	ImportMap     map[string]*string
+	FunctionCalls map[string][]*AstCallExpr
+}
 
-// ImportMap returns a map of import names and their aliases (if any)
-func (file AstFile) ImportMap() map[string]*string {
-	imports := make(map[string]*string)
+func NewAstFile(file *ast.File) *AstFile {
+	astFile := AstFile{
+		File: file,
+	}
 
+	astFile.buildImportMap()
+	astFile.buildFunctionCalls()
+
+	return &astFile
+
+}
+
+// buildImportMap iterates through Imports and builds a map of package names & import names
+func (file *AstFile) buildImportMap() {
+	file.ImportMap = make(map[string]*string)
 	for _, importObj := range file.Imports {
 		if importObj == nil || importObj.Path == nil {
 			continue
@@ -25,25 +40,21 @@ func (file AstFile) ImportMap() map[string]*string {
 			value = &importObj.Name.Name
 		}
 
-		imports[key] = value
+		file.ImportMap[key] = value
 	}
-	return imports
 }
 
-func (file AstFile) GetFunctionCalls() map[string][]*AstCallExpr {
-	callExprs := make(map[string][]*AstCallExpr)
-	unwrapped := ast.File(file)
-	ast.Inspect(&unwrapped, func(n ast.Node) bool {
+func (file *AstFile) buildFunctionCalls() {
+	file.FunctionCalls = make(map[string][]*AstCallExpr)
+	ast.Inspect(file.File, func(n ast.Node) bool {
 		callExpr, ok := n.(*ast.CallExpr)
 		if ok {
 			wrapped := AstCallExpr(*callExpr)
 			name := wrapped.String()
-			list := callExprs[name]
+			list := file.FunctionCalls[name]
 			list = append(list, &wrapped)
-			callExprs[name] = list
+			file.FunctionCalls[name] = list
 		}
 		return true
 	})
-
-	return callExprs
 }

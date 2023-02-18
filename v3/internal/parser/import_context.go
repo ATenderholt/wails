@@ -30,11 +30,11 @@ func NewImportContext(file *ast.File, target string) *ImportContext {
 				importAs = &importObj.Name.Name
 			}
 
-			f := AstFile(*file)
+			f := NewAstFile(file)
 			return &ImportContext{
 				Import:   value,
 				ImportAs: importAs,
-				File:     &f,
+				File:     f,
 			}
 		}
 	}
