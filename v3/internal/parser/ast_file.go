@@ -10,6 +10,7 @@ type AstFile struct {
 	*ast.File
 	ImportMap     map[string]*string
 	FunctionCalls map[string][]*AstCallExpr
+	CompositeLits map[string][]*AstCompositeLit
 }
 
 func NewAstFile(file *ast.File) *AstFile {
@@ -18,7 +19,7 @@ func NewAstFile(file *ast.File) *AstFile {
 	}
 
 	astFile.buildImportMap()
-	astFile.buildFunctionCalls()
+	astFile.build()
 
 	return &astFile
 
@@ -44,8 +45,10 @@ func (file *AstFile) buildImportMap() {
 	}
 }
 
-func (file *AstFile) buildFunctionCalls() {
+func (file *AstFile) build() {
 	file.FunctionCalls = make(map[string][]*AstCallExpr)
+	file.CompositeLits = make(map[string][]*AstCompositeLit)
+
 	ast.Inspect(file.File, func(n ast.Node) bool {
 		callExpr, ok := n.(*ast.CallExpr)
 		if ok {
@@ -54,7 +57,20 @@ func (file *AstFile) buildFunctionCalls() {
 			list := file.FunctionCalls[name]
 			list = append(list, &wrapped)
 			file.FunctionCalls[name] = list
+			return true
 		}
+
+		compositeLit, ok := n.(*ast.CompositeLit)
+		if ok {
+			wrapped := AstCompositeLit(*compositeLit)
+			name := wrapped.String()
+			list := file.CompositeLits[name]
+			list = append(list, &wrapped)
+			file.CompositeLits[name] = list
+
+			return true
+		}
+
 		return true
 	})
 }

@@ -45,4 +45,6 @@ func TestAstFile(t *testing.T) {
 	assert.Contains(t, file.FunctionCalls, "app.NewWebviewWindow")
 	assert.Contains(t, file.FunctionCalls, "app.Run")
 	assert.Contains(t, file.FunctionCalls, "panic")
+
+	assert.Contains(t, file.CompositeLits, "application.Options")
 }

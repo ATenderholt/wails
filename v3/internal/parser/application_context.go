@@ -15,7 +15,9 @@ type fileContext struct {
 }
 
 type ApplicationContext struct {
-	files []fileContext
+	Files           []fileContext
+	Options         *AstCompositeLit
+	BoundCandidates []ast.Expr
 }
 
 func NewApplicationContext(root string) *ApplicationContext {
@@ -27,6 +29,8 @@ func NewApplicationContext(root string) *ApplicationContext {
 	}
 
 	var contexts []fileContext
+	var options *AstCompositeLit
+	var candidates []ast.Expr
 	for name, pkg := range pkgs {
 		for _, f := range pkg.Files {
 			file := NewAstFile(f)
@@ -53,26 +57,37 @@ func NewApplicationContext(root string) *ApplicationContext {
 				target = *wailsImport + ".Options"
 			}
 
-			fmt.Printf("Looking for %s\n", target)
-			var options *AstCompositeLit
-			ast.Inspect(f, func(node ast.Node) bool {
-				compositeLit, ok := node.(*ast.CompositeLit)
+			lits, ok := file.CompositeLits[target]
+			if !ok {
+				continue
+			}
+
+			if len(lits) > 1 {
+				fmt.Printf("Found %d CompositeLits named %s\n", len(lits), target)
+			}
+
+			options = lits[0]
+			for _, option := range options.Elts {
+				temp, ok := option.(*ast.KeyValueExpr)
 				if !ok {
-					return true
+					msg := fmt.Sprintf("Found non-key for %s", options.String())
+					panic(msg)
 				}
 
-				t := AstCompositeLit(*compositeLit)
-				if t.String() == target {
-					options = &t
-					return true
+				key := AstKeyValueExpr(*temp)
+				if key.Name() != "Bind" {
+					continue
 				}
 
-				return true
-			})
-
-			fmt.Printf("Found what we're looking for: %s\n", options)
+				candidates = key.ArrayValue()
+				fmt.Printf("Found %d candidates for bound structures\n", len(candidates))
+			}
 		}
 	}
 
-	return &ApplicationContext{files: contexts}
+	return &ApplicationContext{
+		Files:           contexts,
+		Options:         options,
+		BoundCandidates: candidates,
+	}
 }

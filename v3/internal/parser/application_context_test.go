@@ -9,4 +9,6 @@ import (
 func TestNewApplicationContext(t *testing.T) {
 	appContext := parser.NewApplicationContext("../../examples/binding")
 	require.NotNil(t, appContext)
+
+	require.Len(t, appContext.BoundCandidates, 2)
 }
