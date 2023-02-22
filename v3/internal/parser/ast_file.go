@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"fmt"
 	"go/ast"
 	"strings"
 )
@@ -9,8 +10,10 @@ import (
 type AstFile struct {
 	*ast.File
 	ImportMap     map[string]*string
-	FunctionCalls map[string][]*AstCallExpr
+	AssignStmts   map[string][]*AstAssignStmt
 	CompositeLits map[string][]*AstCompositeLit
+	FunctionCalls map[string][]*AstCallExpr
+	TypeSpecs     map[string][]*AstTypeSpec
 }
 
 func NewAstFile(file *ast.File) *AstFile {
@@ -46,10 +49,29 @@ func (file *AstFile) buildImportMap() {
 }
 
 func (file *AstFile) build() {
+	file.AssignStmts = make(map[string][]*AstAssignStmt)
 	file.FunctionCalls = make(map[string][]*AstCallExpr)
 	file.CompositeLits = make(map[string][]*AstCompositeLit)
+	file.TypeSpecs = make(map[string][]*AstTypeSpec)
 
 	ast.Inspect(file.File, func(n ast.Node) bool {
+		switch t := n.(type) {
+		case *ast.TypeSpec:
+			fmt.Printf("Found typespec\n")
+		default:
+			fmt.Printf("Found node of type %T\n", t)
+		}
+
+		stmt, ok := n.(*ast.AssignStmt)
+		if ok {
+			wrapped := AstAssignStmt(*stmt)
+			name := wrapped.String()
+			list := file.AssignStmts[name]
+			list = append(list, &wrapped)
+			file.AssignStmts[name] = list
+			return true
+		}
+
 		callExpr, ok := n.(*ast.CallExpr)
 		if ok {
 			wrapped := AstCallExpr(*callExpr)
@@ -69,6 +91,15 @@ func (file *AstFile) build() {
 			file.CompositeLits[name] = list
 
 			return true
+		}
+
+		typeSpec, ok := n.(*ast.TypeSpec)
+		if ok {
+			wrapped := AstTypeSpec(*typeSpec)
+			name := wrapped.String()
+			list := file.TypeSpecs[name]
+			list = append(list, &wrapped)
+			file.TypeSpecs[name] = list
 		}
 
 		return true

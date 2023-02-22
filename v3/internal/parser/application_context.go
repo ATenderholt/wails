@@ -5,7 +5,9 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
+	"io/fs"
 	"log"
+	"path/filepath"
 )
 
 type fileContext struct {
@@ -22,7 +24,14 @@ type ApplicationContext struct {
 
 func NewApplicationContext(root string) *ApplicationContext {
 	var contexts []fileContext
-	contexts = append(contexts, loadDir(root)...)
+	filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
+		if !d.IsDir() {
+			return nil
+		}
+
+		contexts = append(contexts, loadDir(path)...)
+		return nil
+	})
 
 	appContext := ApplicationContext{
 		FileContexts: contexts,
@@ -41,11 +50,11 @@ func loadDir(path string) []fileContext {
 
 	var contexts []fileContext
 	for name, pkg := range pkgs {
-		for _, f := range pkg.Files {
+		for filename, f := range pkg.Files {
 			file := NewAstFile(f)
 			context := fileContext{
 				pkgName:  name,
-				fileName: file.Name.Name,
+				fileName: filename,
 				file:     file,
 			}
 			contexts = append(contexts, context)
